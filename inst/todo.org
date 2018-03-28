@@ -1,0 +1,16 @@
+* update documentation with network names
+* submit to cran
+* add travis
+* add badges
+
+
+* Enhancements
++ n_imports, n_suggests, n_collaborators and so on should be computed
+  for the (sub-)network that is used. Perhaps have a global argument
+  in summary which if TRUE global statistics are returned, otherwise
+  local ones are re-computed.
++ add clustering capabilities for discovery of groups
++ add an only arguments to build network, which if TRUE the network is
+  build for only the packages supplied instead for all packages that
+  are linked somehow to package.
++ weights for collaboration networks?
