@@ -11,7 +11,7 @@ clean_CRAN_db(packages_db = tools::CRAN_package_db(),
 \arguments{
 \item{packages_db}{a \code{\link{data.frame}} with the same
 structure to the output of \code{\link[tools]{CRAN_package_db}}
-(default).}
+(default) or \code{\link[utils]{available.packages}}}
 
 \item{clean_directives}{a function that transforms the contents of
 the various directives in the package descriptions to vectors
@@ -33,8 +33,8 @@ Clean and organise package and author names in the output of \code{tools::CRAN_p
 \code{clean_CRAN_db} uses \code{clean_up_directives} and
 \code{clean_up_authors} to clean up the author names and package
 names in the various directives (like \code{Imports},
-\code{Depends}, \code{Suggests}, \code{Enhances}, as in the
-\code{data.frame} that results from
+\code{Depends}, \code{Suggests}, \code{Enhances}, \code{LinkingTo})
+as in the \code{data.frame} that results from
 \code{\link[tools]{CRAN_package_db}}) and return an organised
 \code{data.frame} of class \code{cranly_db} that can be used for
 further analysis.

@@ -39,6 +39,11 @@ my_packages
 plot(package_network, package = my_packages, title = TRUE, legend = TRUE)
 
 ## ------------------------------------------------------------------------
+optional_packages <- subset(package_network, recommended = FALSE, base = FALSE)
+optional_summary <- summary(optional_packages)
+plot(optional_summary, top = 30, according_to = "n_imported_by")
+
+## ------------------------------------------------------------------------
 author_network <- build_network(object = package_db, perspective = "author")
 
 ## ------------------------------------------------------------------------
@@ -53,5 +58,5 @@ plot(author_summaries, according_to = "betweenness", top = 20)
 plot(author_network, author = "R Core")
 
 ## ------------------------------------------------------------------------
-plot(author_network, author = "Kosmidis")
+plot(author_network, author = "Kosmidis", exact = FALSE)
 

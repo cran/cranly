@@ -29,21 +29,21 @@ The convention for a \code{\link{cranly_network}} object with
 \code{perspective = "package"} is that the direction of an edge is
 from the package that is imported by, suggested by, enhances or is
 a dependency of another package, to the latter package. The author
-network is analysed and visualised as undirected by all methods in
-\code{cranly}.
+collaboration network is analysed and visualised as undirected by
+all methods in \code{cranly}.
 }
 \examples{
 \dontrun{
-data("cran20032018", package = "cranly")
+cran_db <- clean_CRAN_db()
 ## Package directives network
-package_network <- build_network(object = cran20032018, perspective = "package")
+package_network <- build_network(object = cran_db, perspective = "package")
 head(package_network$edges)
 head(package_network$nodes)
 attr(package_network, "timestamp")
 class(package_network)
 
 ## Author collaboration network
-author_network <- build_network(object = cran20032018, perspective = "author")
+author_network <- build_network(object = cran_db, perspective = "author")
 head(author_network$edges)
 head(author_network$nodes)
 attr(author_network, "timestamp")

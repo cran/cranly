@@ -5,10 +5,20 @@
 \alias{package_with}
 \alias{author_with}
 \alias{author_of}
+\alias{suggests}
+\alias{imports}
+\alias{depends}
+\alias{linking_to}
+\alias{enhances}
 \alias{package_by.cranly_network}
+\alias{package_with.cranly_network}
 \alias{author_of.cranly_network}
 \alias{author_with.cranly_network}
-\alias{package_with.cranly_network}
+\alias{suggests.cranly_network}
+\alias{imports.cranly_network}
+\alias{depends.cranly_network}
+\alias{linking_to.cranly_network}
+\alias{enhances.cranly_network}
 \title{Find packages and authors by authors or packages with names matching a specific string}
 \usage{
 package_by(x, author = NULL, exact = FALSE)
@@ -19,33 +29,53 @@ author_with(x, name = NULL, exact = FALSE)
 
 author_of(x, package = NULL, exact = FALSE)
 
+suggests(x, package = NULL, exact = FALSE)
+
+imports(x, package = NULL, exact = FALSE)
+
+depends(x, package = NULL, exact = FALSE)
+
+linking_to(x, package = NULL, exact = FALSE)
+
+enhances(x, package = NULL, exact = FALSE)
+
 \method{package_by}{cranly_network}(x, author = NULL, exact = FALSE)
+
+\method{package_with}{cranly_network}(x, name = NULL, exact = FALSE)
 
 \method{author_of}{cranly_network}(x, package = NULL, exact = FALSE)
 
 \method{author_with}{cranly_network}(x, name = NULL, exact = FALSE)
 
-\method{package_with}{cranly_network}(x, name = NULL, exact = FALSE)
+\method{suggests}{cranly_network}(x, package = NULL, exact = FALSE)
+
+\method{imports}{cranly_network}(x, package = NULL, exact = FALSE)
+
+\method{depends}{cranly_network}(x, package = NULL, exact = FALSE)
+
+\method{linking_to}{cranly_network}(x, package = NULL, exact = FALSE)
+
+\method{enhances}{cranly_network}(x, package = NULL, exact = FALSE)
 }
 \arguments{
 \item{x}{a \code{\link{cranly_network}} object}
 
-\item{author}{a vector of character strings with the author names to be matched}
+\item{author}{a vector of character strings with the author names to be matched. Default is \code{Inf} which returns all available author in \code{x} for further subsetting}
 
 \item{exact}{logical. Should we use exact matching? Default is \code{TRUE}}
 
-\item{name}{a vector of character strings with the names to be matched}
+\item{name}{a vector of character strings with the names to be matched. If \code{Inf} all available names in \code{x} are returned. If \code{NULL} (default) nothing is matched}
 
-\item{package}{a vector of character strings with the package names to be matched}
+\item{package}{a vector of character strings with the package names to be matched. Default is \code{Inf} which returns all available packages in \code{x} for further subsetting}
 }
 \description{
 Find packages and authors by authors or packages with names matching a specific string
 }
 \examples{
 \dontrun{
-data("cran20032018", package = "cranly")
+cran_db <- clean_CRAN_db()
 ## Using a package directives network
-package_network <- build_network(cran20032018)
+package_network <- build_network(cran_db)
 ## Find all packages containing glm in their name
 package_with(package_network, name = "glm")
 ## Find all authors of packages containing brglm in their name
@@ -56,9 +86,15 @@ package_with(package_network, name = "rglm", exact = FALSE)
 author_of(package_network, package = "brglm2", exact = TRUE)
 ## Find all authors with Ioannis in their name
 author_with(package_network, name = "Ioannis", exact = TRUE)
+## Find all packages that package Rcpp suggests
+suggests(package_network, package = "Rcpp", exact = TRUE)
+## Find all packages that package Rcpp imports
+imports(package_network, package = "Rcpp", exact = TRUE)
+## Find all packages that package RcppArmadillo is linking to
+linking_to(package_network, package = "RcppArmadillo", exact = TRUE)
 
 ## Using an author collaboration network
-author_network <- build_network(cran20032018, perspective = "author")
+author_network <- build_network(cran_db, perspective = "author")
 ## Find all packages containing glm in their name
 package_with(author_network, name = "glm")
 ## Find all authors of packages containing brglm in their name

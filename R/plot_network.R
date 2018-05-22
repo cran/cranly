@@ -1,6 +1,6 @@
 # Copyright (C) 2018 Ioannis Kosmidis
 
-#' Interactive visualization of a package or author \code{\link{cranly_network}} using the vis.js library
+#' Interactive visualization of a package or author \code{\link{cranly_network}}
 #'
 #' @inheritParams subset.cranly_network
 #' @inheritParams summary.cranly_network
@@ -11,62 +11,65 @@
 #' @param zoomView logical. Should the user be able to zoom in? Default is \code{TRUE}
 #' @param legend logical. Should a legend be added on the resulting visualization? Default is \code{FALSE}
 #' @param title logical. Should a title be added on the resulting visualization? Default is \code{FALSE}
-#' @param global locical. If \code{TRUE} (default) the network summary statistics are computed on \code{object}, otherwise, on the subset of \code{object} according to \code{package} and \code{author}
+#' @param global locical. If \code{TRUE} (default) the network summary statistics are computed on \code{object}, otherwise, on the subset of \code{object} according to \code{package}, \code{author}, \code{directive}, \code{base}, \code{recommended}
+#' @param plot logical. Should the visualisation be returned? Default is \code{TRUE}
 #' @param ... currently not used
 #'
 #' @examples
 #' \dontrun{
-#' data("cran20032018", package = "cranly")
-#' package_network <- build_network(cran20032018)
+#' cran_db <- clean_CRAN_db()
+#' package_network <- build_network(cran_db)
 #' ## The package directives network of all users with Ioannis in
-#' ## their name from the CRAN database subset cran20032018
+#' ## their name from the CRAN database subset cran_db
 #' plot(package_network, author = "Ioannis")
 #' ## The package directives network of "Achim Zeileis"
 #' plot(package_network, author = "Achim Zeileis")
 #'
-#' author_network <- build_network(cran20032018, perspective = "author")
+#' author_network <- build_network(cran_db, perspective = "author")
 #' plot(author_network, author = "Ioannis", title = TRUE)
 #' }
 #' @export
 plot.cranly_network <- function(x,
-                                package = NULL,
-                                author = NULL,
+                                package = Inf,
+                                author = Inf,
+                                directive = c("imports", "suggests", "enhances", "depends", "linkingto"),
+                                base = TRUE,
+                                recommended = TRUE,
+                                exact = TRUE,
+                                global = TRUE,
                                 physics_threshold = 200,
                                 height = NULL, #"1080px",
                                 width = NULL, #"1080px",
-                                directive = c("imports", "suggests", "enhances", "depends"),
                                 dragNodes = TRUE,
                                 dragView = TRUE,
                                 zoomView = TRUE,
-                                exact = TRUE,
-                                legend = FALSE,
-                                title = FALSE,
-                                global = TRUE,
+                                legend = TRUE,
+                                title = TRUE,
+                                plot = TRUE,
                                 ...) {
 
     if (global) {
         summaries <- summary(x, advanced = FALSE)
     }
-    x <- subset(x, package = package, author = author, directive = directive, exact = exact)
+
+    x <- subset(x, package = package, author = author, directive = directive, exact = exact,
+                base = base, recommended = recommended)
 
     if (!global) {
         summaries <- summary(x, advanced = FALSE)
     }
-
     timestamp <- attr(x, "timestamp")
 
     if (nrow(x$nodes) == 0) {
-            message("Nothing to visualise")
+            message("Nothing to plot")
             return(invisible(NULL))
     }
 
     edges_subset <- x$edges
     nodes_subset <- x$nodes
     colors <- colorspace::diverge_hcl(10, c = 100, l = c(50, 100), power = 1)
-
     perspective <- attr(x, "perspective")
     keep <- attr(x, "keep")
-
     lnodes <- ledges <- main <- NULL
 
     if (perspective == "package") {
@@ -75,13 +78,15 @@ plot.cranly_network <- function(x,
                                      c("imports" = colors[10],
                                        "depends" = colors[10],
                                        "suggests" = colors[4],
-                                       "enhances" = colors[4]))
+                                       "enhances" = colors[4],
+                                       "linkingto" = colors[7]))
             dashes <- ifelse(type %in% c("imports", "depends", "suggests"), FALSE, TRUE)
             title <- str_replace_all(type,
                                      c("imports" = "is imported by",
                                        "depends" = "is dependency of",
                                        "suggests" = "is suggested by",
-                                       "enhances" = "enhances"))
+                                       "enhances" = "enhances",
+                                       "linkingto" = "is linked by"))
         })
         summaries <- summaries[nodes_subset$package, ]
         nodes_subset <- within(nodes_subset, {
@@ -94,6 +99,7 @@ plot.cranly_network <- function(x,
                             "depends/is dependency of:", summaries$n_depends, "/", summaries$n_depended_by, "<br>",
                             "suggests/suggested by:", summaries$n_suggests, "/", summaries$n_suggested_by, "<br>",
                             "enhances/enhaced by:", summaries$n_enhances, "/", summaries$n_enhanced_by, "<br>",
+                            "linkingto/linked by:", summaries$n_linking, "/", summaries$n_linked_by, "<br>",
                             "<img src=https://cranlogs.r-pkg.org/badges/", package, "?color=969696>")
         })
 
@@ -103,22 +109,22 @@ plot.cranly_network <- function(x,
                                  color = c(colors[1], colors[5]),
                                  font.align = "top")
 
-            ledges <- data.frame(label = c("is imported by", "is dependency of", "is suggested by", "enhances"),
-                                 color = c(colors[10], colors[10], colors[4], colors[4]),
-                                 dashes = c(FALSE, FALSE, FALSE, TRUE),
-                                 arrows = c("to", "to", "to", "to"),
+            ledges <- data.frame(label = c("is imported by", "is dependency of", "is suggested by", "enhances", "is linked by"),
+                                 color = c(colors[10], colors[10], colors[4], colors[4], colors[7]),
+                                 dashes = c(FALSE, FALSE, FALSE, TRUE, TRUE),
+                                 arrows = c("to", "to", "to", "to", "to"),
                                  font.align = "top")
         }
-
+x
         if (title) {
             main <- paste(
+                paste0("cranly package network<br>"),
                 paste0("CRAN database version<br>", format(timestamp, format = "%a, %d %b %Y, %H:%M"), collapse = ""),
                 "<br>",
-                if (!is.null(package)) paste0("Package names with<br> \"", paste(package, collapse = "\", \""), "\"", collapse = ""),
+                if (any(is.infinite(package))) "" else paste0("Package names with<br> \"", paste(package, collapse = "\", \""), "\"", collapse = ""),
                 "<br>",
-                if (!is.null(author)) paste0("Author names with<br> \"", paste(author, collapse = "\", \""), "\"", collapse = ""))
+                if (any(is.infinite(author))) "" else paste0("Author names with<br> \"", paste(author, collapse = "\", \""), "\"", collapse = ""))
         }
-
     }
     else {
         edges_subset <- within(edges_subset, {
@@ -153,20 +159,21 @@ plot.cranly_network <- function(x,
 
         if (title) {
             main <- paste(
+                paste0("cranly collaboration network<br>"),
                 paste0("CRAN database version<br>", format(timestamp, format = "%a, %d %b %Y, %H:%M"), collapse = ""),
                 "<br>",
                 if (!is.null(author)) paste0("Author names with<br> \"", paste(author, collapse = "\", \""), "\"", collapse = ""),
                 "<br>",
                 if (!is.null(package)) paste0("Package names with<br> \"", paste(package, collapse = "\", \""), "\"", collapse = ""))
-
         }
-
-
     }
 
     export_name <- paste0("cranly_network-", format(timestamp, format = "%d-%b-%Y"), "-", paste0(c(author, package), collapse = "-"))
 
-    visNetwork::visNetwork(nodes_subset, edges_subset, height = height, width = width,
+    ## Keep only relevant information
+    nodes_subset <- nodes_subset[match(c("color", "label", "id", "title"), names(nodes_subset), nomatch = 0)]
+    edges_subset <- edges_subset[match(c("from", "to", "color", "title", "dashes"), names(edges_subset), nomatch = 0)]
+    res <- visNetwork::visNetwork(nodes_subset, edges_subset, height = height, width = width,
                            main = list(text = main,
                                        style = "font-family:Georgia, Times New Roman, Times, serif;font-size:15px")) %>%
         visNetwork::visEdges(arrows = if (perspective == "author") NULL else list(to = list(enabled = TRUE, scaleFactor = 0.5)),
@@ -175,4 +182,12 @@ plot.cranly_network <- function(x,
             visNetwork::visLegend(addNodes = lnodes, addEdges = ledges, useGroups = FALSE) %>%
             visNetwork::visInteraction(dragNodes = dragNodes, dragView = dragView, zoomView = zoomView) %>%
             visNetwork::visExport(name = export_name, label = "PNG snapshot", style = "")
+    if (plot) {
+        return(res)
+    }
+    else {
+        return(invisible(res))
+    }
 }
+
+

@@ -18,8 +18,8 @@ author_network <- build_network(package_db, perspective = "author")
 ## ------------------------------------------------------------------------
 (glm_packages <- package_with(package_network, name = "glm"))
 
-## ---- eval = FALSE-------------------------------------------------------
-#  plot(package_network, package = glm_packages)
+## ------------------------------------------------------------------------
+plot(package_network, package = glm_packages)
 
 ## ------------------------------------------------------------------------
 glm_package_only_network <- subset(package_network, package = glm_packages, only = TRUE)

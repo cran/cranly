@@ -6,7 +6,7 @@
 #'
 #' @param packages_db a \code{\link{data.frame}} with the same
 #'     structure to the output of \code{\link[tools]{CRAN_package_db}}
-#'     (default).
+#'     (default) or \code{\link[utils]{available.packages}}
 #' @param clean_directives a function that transforms the contents of
 #'     the various directives in the package descriptions to vectors
 #'     of package names. Default is \code{\link{clean_up_directives}}.
@@ -19,8 +19,8 @@
 #' \code{clean_CRAN_db} uses \code{clean_up_directives} and
 #' \code{clean_up_authors} to clean up the author names and package
 #' names in the various directives (like \code{Imports},
-#' \code{Depends}, \code{Suggests}, \code{Enhances}, as in the
-#' \code{data.frame} that results from
+#' \code{Depends}, \code{Suggests}, \code{Enhances}, \code{LinkingTo})
+#' as in the \code{data.frame} that results from
 #' \code{\link[tools]{CRAN_package_db}}) and return an organised
 #' \code{data.frame} of class \code{cranly_db} that can be used for
 #' further analysis.
@@ -62,15 +62,44 @@ clean_CRAN_db <- function(packages_db = tools::CRAN_package_db(),
                           clean_author = clean_up_author) {
 
 
+
+    if (is.matrix(packages_db)) {
+        packages_db <- as.data.frame(packages_db)
+    }
+
     md5 <- grepl("MD5sum", names(packages_db))
     if (any(md5)) {
         ## Remove redundant MD5 sum
         ind <- which(md5)
-
-        packages_db <- packages_db[-ind[1]]
-        ## Remove duplicated packages
-        packages_db <- packages_db[!duplicated(packages_db$MD5sum), ]
+        if (length(ind) > 1) {
+            packages_db <- packages_db[-ind[1]]
+        }
     }
+    else {
+        warning("no MD5sum information found in package_db")
+        packages_db$MD5sum <- NA
+    }
+
+    ## Remove duplicated packages
+    packages_db <- packages_db[is.na(packages_db$Package) | !duplicated(packages_db$Package), ]
+
+    if (is.null(packages_db$Author)) {
+        warning("no author information found in package_db")
+        packages_db$Author <- NA
+    }
+    if (is.null(packages_db$Date)) {
+        warning("no date information found in package_db")
+        packages_db$Date <- NA
+    }
+    if (is.null(packages_db$URL)) {
+        warning("no url information found in package_db")
+        packages_db$URL <- NA
+    }
+    if (is.null(packages_db$Maintainer)) {
+        warning("no Maintainer information found in package_db")
+        packages_db$Maintainer <- NA
+    }
+
 
     ## Coerce variable names to lower case
     names(packages_db) <- tolower(names(packages_db))
@@ -80,6 +109,7 @@ clean_CRAN_db <- function(packages_db = tools::CRAN_package_db(),
         depends <- clean_directives(depends)
         suggests <- clean_directives(suggests)
         enhances <- clean_directives(enhances)
+        linkingto <- clean_directives(linkingto)
         author <- clean_author(author)
     })
 
@@ -105,8 +135,10 @@ clean_up_directives <- function(variable) {
         str_replace_all("\n", ",") %>%
         str_replace_all("\\([^()]*\\)", "") %>%
         str_replace_all(" ", "") %>%
+        ## Eliminate R from dependencies
         str_replace_all("\\bR,\\b", "") %>%
-        str_replace_all("\\bR\\b", "") %>%
+        str_replace_all("\\b,R\\b", "") %>%
+        str_replace_all("^R$", "") %>%
         str_split(",") %>%
         lapply(function(x) {
             out <- str_replace_all(x, ",|^\\s+|\\s+$", "")
@@ -478,7 +510,7 @@ clean_up_author <- function(variable) {
         str_replace_all("\\d{2}", "") %>%
         str_replace_all("[Cc][Rr][Aa][Nn] [Tt]eam", "CRAN Team") %>%
         str_replace_all("R[ sS]tudio|R[ sS]tudio Inc", "RStudio") %>%
-        str_replace_all("\\bH2O ai team\\b|\\bH2O ai\\b", "H2O.ai") %>%
+        str_replace_all("^H2O ai team$|^H2O ai$", "H2O.ai") %>%
         ## Special people
         str_replace_all("Wickham Hadley|Hadley Wickham function", "Hadley Wickham") %>%
         str_replace_all("Yihui Xie function", "Yihui Xie") %>%
