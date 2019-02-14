@@ -7,6 +7,7 @@ knitr::opts_chunk$set(
 )
 
 ## ------------------------------------------------------------------------
+library("cranly")
 cran_db <- clean_CRAN_db()
 package_network <- build_network(cran_db, perspective = "package")
 
@@ -17,14 +18,15 @@ package_network <- build_network(cran_db, perspective = "package")
 compute_dependence_tree(package_network, "tibble")
 
 ## ------------------------------------------------------------------------
-cranly_tree <- build_dependence_tree(package_network, "cranly")
-plot(cranly_tree)
+tibble_tree <- build_dependence_tree(package_network, "tibble")
+plot(tibble_tree)
 
 ## ------------------------------------------------------------------------
-cranly_dep_index <- sapply(cranly_tree$nodes$package, function(package) {
+betareg_tree <- build_dependence_tree(package_network, "betareg")
+betareg_dep_index <- sapply(betareg_tree$nodes$package, function(package) {
     tree <- build_dependence_tree(package_network, package = package)
     s <- summary(tree)
     s$dependence_index
 })
-sort(cranly_dep_index)
+sort(betareg_dep_index)
 
