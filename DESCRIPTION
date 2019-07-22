@@ -1,6 +1,6 @@
 Package: cranly
 Title: Package Directives and Collaboration Networks in CRAN
-Version: 0.5.2
+Version: 0.5.3
 Authors@R: c(person(given = "Ioannis", family = "Kosmidis",
                     role = c("aut", "cre"),
 	            email = "ioannis.kosmidis@warwick.ac.uk",
@@ -18,8 +18,8 @@ RoxygenNote: 6.1.1
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2019-07-17 15:56:48 UTC; yiannis
+Packaged: 2019-07-21 20:05:58 UTC; yiannis
 Author: Ioannis Kosmidis [aut, cre] (<https://orcid.org/0000-0003-1556-0302>)
 Maintainer: Ioannis Kosmidis <ioannis.kosmidis@warwick.ac.uk>
 Repository: CRAN
-Date/Publication: 2019-07-18 06:37:23 UTC
+Date/Publication: 2019-07-22 22:20:03 UTC
